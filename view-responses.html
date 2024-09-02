@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar Respostas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .response {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .question {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visualizar Respostas</h1>
+        <div id="responsesContainer"></div>
+        <button onclick="window.location.href='index.html'">Voltar</button>
+    </div>
+    <script>
+        // Função para obter as respostas armazenadas no localStorage
+        function getStoredResponses() {
+            return JSON.parse(localStorage.getItem('responses')) || [];
+        }
+
+        // Função para exibir as respostas
+        function displayResponses() {
+            const responses = getStoredResponses();
+            const container = document.getElementById('responsesContainer');
+            container.innerHTML = '';
+            
+            if (responses.length === 0) {
+                container.innerHTML = '<p>Nenhuma resposta encontrada.</p>';
+                return;
+            }
+
+            responses.forEach((response, index) => {
+                let responseHtml = `<div class="response"><h2>Resposta ${index + 1}</h2>`;
+                for (const [question, answer] of Object.entries(response)) {
+                    responseHtml += `<p class="question">${question}:</p><p>${answer}</p>`;
+                }
+                responseHtml += '</div>';
+                container.innerHTML += responseHtml;
+            });
+        }
+
+        // Exibir as respostas ao carregar a página
+        window.onload = displayResponses;
+    </script>
+</body>
+</html>

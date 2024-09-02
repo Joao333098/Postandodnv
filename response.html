@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responder Formulário</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            margin: 5px 0;
+            padding: 12px;
+            width: calc(100% - 24px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .question-item {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Responder Formulário</h1>
+
+        <form id="responseForm">
+            <!-- Questions will be dynamically injected here -->
+            <div id="questionsContainer"></div>
+            <button type="submit">Enviar Respostas</button>
+        </form>
+    </div>
+
+    <script>
+        function getStoredQuestions() {
+            return JSON.parse(localStorage.getItem('questions')) || [];
+        }
+
+        function renderQuestions() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const formId = urlParams.get('form');
+            const questions = getStoredQuestions();
+
+            const questionsContainer = document.getElementById('questionsContainer');
+            questionsContainer.innerHTML = '';
+
+            questions.forEach(question => {
+                const questionHtml = `
+                    <div class="question-item">
+                        <label>${question.text}</label>
+                        ${generateInputForQuestion(question)}
+                    </div>
+                `;
+                questionsContainer.innerHTML += questionHtml;
+            });
+        }
+
+        function generateInputForQuestion(question) {
+            switch (question.type) {
+                case 'text':
+                    return '<input type="text" name="' + question.text + '" required>';
+                case 'single':
+                    return `
+                        <select name="${question.text}" required>
+                            ${question.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                case 'multiple':
+                    return `
+                        ${question.options.map(opt => `<label><input type="checkbox" name="${question.text}" value="${opt}">${opt}</label>`).join('<br>')}
+                    `;
+                case 'number':
+                    return '<input type="number" name="' + question.text + '" required>';
+                default:
+                    return '';
+            }
+        }
+
+        document.getElementById('responseForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const responses = {};
+
+            formData.forEach((value, key) => {
+                if (!responses[key]) {
+                    responses[key] = [];
+                }
+                responses[key].push(value);
+            });
+
+            // Save the responses somewhere, like localStorage or send to a server
+            console.log('Form responses:', responses);
+
+            alert('Respostas enviadas com sucesso!');
+        });
+
+        window.onload = renderQuestions;
+    </script>
+</body>
+</html>

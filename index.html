@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração do Formulário</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            margin: 5px 0;
+            padding: 12px;
+            width: calc(100% - 24px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .question-list {
+            margin-top: 20px;
+        }
+        .question-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .question-item button {
+            background-color: #e74c3c;
+        }
+        .question-item button:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Administração do Formulário</h1>
+
+        <h2>Criar Pergunta</h2>
+        <form id="createQuestionForm">
+            <label for="questionText">Pergunta:</label>
+            <input type="text" id="questionText" required>
+
+            <label for="questionType">Tipo de Pergunta:</label>
+            <select id="questionType" required>
+                <option value="text">Texto</option>
+                <option value="single">Escolha Única</option>
+                <option value="multiple">Múltipla Escolha</option>
+                <option value="number">Número</option>
+            </select>
+
+            <div id="optionsContainer" style="display: none;">
+                <label for="questionOptions">Opções (separadas por vírgula):</label>
+                <input type="text" id="questionOptions">
+            </div>
+
+            <button type="submit">Adicionar Pergunta</button>
+        </form>
+
+        <h2>Perguntas Atuais</h2>
+        <div id="questionsContainer" class="question-list"></div>
+
+        <h2>Gerar Link do Formulário</h2>
+        <button onclick="generateFormLink()">Gerar Link</button>
+        <p id="formLink"></p>
+
+        <button onclick="window.location.href='view-responses.html'">Visualizar Respostas</button>
+    </div>
+
+    <script>
+        const createQuestionForm = document.getElementById('createQuestionForm');
+        const questionTypeSelect = document.getElementById('questionType');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const formLink = document.getElementById('formLink');
+
+        function getStoredQuestions() {
+            return JSON.parse(localStorage.getItem('questions')) || [];
+        }
+
+        function setStoredQuestions(questions) {
+            localStorage.setItem('questions', JSON.stringify(questions));
+        }
+
+        function renderQuestions() {
+            const questions = getStoredQuestions();
+            questionsContainer.innerHTML = '';
+
+            questions.forEach((question, index) => {
+                let questionHtml = `
+                    <div class="question-item">
+                        <p><strong>Pergunta:</strong> ${question.text}</p>
+                        <p><strong>Tipo:</strong> ${question.type}</p>
+                        <p><strong>Opções:</strong> ${question.options ? question.options.join(', ') : 'N/A'}</p>
+                        <button onclick="removeQuestion(${index})">Remover Pergunta</button>
+                    </div>
+                `;
+                questionsContainer.innerHTML += questionHtml;
+            });
+        }
+
+        function removeQuestion(index) {
+            const questions = getStoredQuestions();
+            questions.splice(index, 1);
+            setStoredQuestions(questions);
+            renderQuestions();
+        }
+
+        createQuestionForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const text = document.getElementById('questionText').value;
+            const type = document.getElementById('questionType').value;
+            const options = type === 'single' || type === 'multiple' ? document.getElementById('questionOptions').value.split(',').map(opt => opt.trim()) : null;
+
+            const newQuestion = {
+                text,
+                type,
+                options
+            };
+
+            const questions = getStoredQuestions();
+            questions.push(newQuestion);
+            setStoredQuestions(questions);
+
+            createQuestionForm.reset();
+            optionsContainer.style.display = 'none';
+            renderQuestions();
+        });
+
+        questionTypeSelect.addEventListener('change', function() {
+            const type = questionTypeSelect.value;
+            optionsContainer.style.display = type === 'single' || type === 'multiple' ? 'block' : 'none';
+        });
+
+        function generateFormLink() {
+            const formId = Date.now();  // Unique ID for the form
+            const link = `response.html?form=${formId}`;
+            formLink.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+        }
+
+        window.onload = renderQuestions;
+    </script>
+</body>
+</html>
